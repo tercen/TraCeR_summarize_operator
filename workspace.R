@@ -1,5 +1,6 @@
 library(tercen)
 library(dplyr)
+library(readr)
 
 options("tercen.workflowId" = "0796038ab232707b473f109e77005e85")
 options("tercen.stepId"     = "547bd83f-0be2-4adb-b119-513f5058bb91")
@@ -60,11 +61,18 @@ args <- paste('summarise',
 
 system2(cmd, args)
 
+# run the collect script
+
+cmd <- "python /collect_TRA_TRB_in_fasta.py this_run/*/filtered_TCR_seqs/*.fa > this_run.tsv"
+
+system(cmd)
+
+collected_summary <- read_tsv("this_run.tsv")
+
+cols <- sapply(collected_summary, is.logical)
+collected_summary[,cols] <- lapply(collected_summary[,cols], as.numeric)
 
 
-(ctx = tercenCtx())  %>% 
-  select(.y, .ci, .ri) %>% 
-  group_by(.ci, .ri) %>%
-  summarise(median = median(.y)) %>%
+(collected_summary %>%
   ctx$addNamespace() %>%
-  ctx$save()
+  ctx$save())
