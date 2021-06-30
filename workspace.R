@@ -74,5 +74,6 @@ collected_summary[,cols] <- lapply(collected_summary[,cols], as.numeric)
 
 
 (collected_summary %>%
+    mutate(.ci = 0) %>%
   ctx$addNamespace() %>%
   ctx$save())
