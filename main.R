@@ -12,6 +12,10 @@ file_names <- sapply(documentIds[[1]],
                      function(x) (ctx$client$fileService$get(x))$name) %>%
   sort()
 
+system("bowtie2")
+
+stop("testing if environmnet variables are set")
+
 if((length(file_names) %% 2) != 0) stop("Non-even number of files supplied. Are you sure you've supplied paired-end files?")
 
 
@@ -44,7 +48,6 @@ for (first_in_pair_index in seq(1, length(file_names), by = 2)) {
   
   system2(cmd, args)
 
-  stop("Hammertime")
 }
 
 args <- paste('summarise',
