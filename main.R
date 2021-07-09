@@ -44,7 +44,7 @@ for (first_in_pair_index in seq(1, length(file_names), by = 2)) {
   
   system2(cmd, args)
 
-  
+  stop("Hammertime")
 }
 
 args <- paste('summarise',
