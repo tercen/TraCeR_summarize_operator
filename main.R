@@ -4,9 +4,17 @@ library(readr)
 
 ctx <- tercenCtx()
 
-if (!any(ctx$cnames == "documentId")) stop("Column factor documentId is required") 
+#if (!any(ctx$cnames == "documentId")) stop("Column factor documentId is required") 
 
-documentIds <- ctx$cselect("documentId")
+documentIds <- ctx$cselect()
+
+for (id in documentIds[[1]]) {
+  
+  res <- try(ctx$client$fileService$get(id),silent = TRUE)
+  if (class(res) == "try-error") stop("Supplied column values are not valid documentIds.")
+  
+  
+}
 
 file_names <- sapply(documentIds[[1]],
                      function(x) (ctx$client$fileService$get(x))$name) %>%
