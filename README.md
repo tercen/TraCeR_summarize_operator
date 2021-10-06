@@ -1,4 +1,4 @@
-# Template R operator
+# TraCeR operator
 
 The `Template R operator` is a template repository for the creation of R operators in Tercen. An overview of steps for developing an operator are:
 
@@ -23,12 +23,12 @@ The `Template R operator` is a template repository for the creation of R operato
 
 Input projection|.
 ---|---
-`x-axis`        | type, description 
-`y-axis`        | type, description 
-`row`           | type, description 
-`column`        | type, description 
-`colors`        | type, description 
-`labels`        | type, description 
+`x-axis`        | type, description
+`y-axis`        | type, description
+`row`           | type, description
+`column`        | type, description
+`colors`        | type, description
+`labels`        | type, description
 
 Input parameters|.
 ---|---
@@ -47,4 +47,3 @@ Details on the computation.
 
 [template_shiny_operator](https://github.com/tercen/template_shiny_operator)
 , [template_docker_operator](https://github.com/tercen/template_docker_operator)
-

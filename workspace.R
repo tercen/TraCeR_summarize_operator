@@ -81,13 +81,13 @@ if (!((".forward_read_fastq_data" %in% hidden_colnames) &
 
 for (i in 1:nrow(table)) {
   
-  sample_name <- select(table, ends_with(".sample"))[[i]]
+  sample_name <- select(table, ends_with(".sample"))[[1]][[i]]
   
   filename_r1 <- paste0(sample_name, "1.fastq.gz")
   filename_r2 <- paste0(sample_name, "2.fastq.gz")
   
-  writeBin(deserialize.from.string(table[".forward_read_fastq_data"][[1]]), filename_r1)
-  writeBin(deserialize.from.string(table[".reverse_read_fastq_data"][[1]]), filename_r2)
+  writeBin(deserialize.from.string(table[".forward_read_fastq_data"][[1]][[i]]), filename_r1)
+  writeBin(deserialize.from.string(table[".reverse_read_fastq_data"][[1]][[i]]), filename_r2)
   
   cmd = '/tracer/tracer'
   args = paste('assemble',

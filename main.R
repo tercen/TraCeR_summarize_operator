@@ -2,44 +2,85 @@ library(tercen)
 library(dplyr)
 library(readr)
 
+serialize.to.string = function(object){
+  con = rawConnection(raw(0), "r+")
+  saveRDS(object, con)
+  str64 = base64enc::base64encode(rawConnectionValue(con))
+  close(con)
+  return(str64)
+}
+deserialize.from.string = function(str64){
+  con = rawConnection(base64enc::base64decode(str64), "r+")
+  object = readRDS(con)
+  close(con)
+  return(object)
+}
+
+find.schema.by.factor.name = function(ctx, factor.name){
+  visit.relation = function(visitor, relation){
+    if (inherits(relation,"SimpleRelation")){
+      visitor(relation)
+    } else if (inherits(relation,"CompositeRelation")){
+      visit.relation(visitor, relation$mainRelation)
+      lapply(relation$joinOperators, function(jop){
+        visit.relation(visitor, jop$rightRelation)
+      })
+    } else if (inherits(relation,"WhereRelation") 
+               || inherits(relation,"RenameRelation")){
+      visit.relation(visitor, relation$relation)
+    } else if (inherits(relation,"UnionRelation")){
+      lapply(relation$relations, function(rel){
+        visit.relation(visitor, rel)
+      })
+    } 
+    invisible()
+  }
+  
+  myenv = new.env()
+  add.in.env = function(object){
+    myenv[[toString(length(myenv)+1)]] = object$id
+  }
+  
+  visit.relation(add.in.env, ctx$query$relation)
+  
+  schemas = lapply(as.list(myenv), function(id){
+    ctx$client$tableSchemaService$get(id)
+  })
+  
+  Find(function(schema){
+    !is.null(Find(function(column) column$name == factor.name, schema$columns))
+  }, schemas);
+}
+
+
 ctx <- tercenCtx()
 
-#if (!any(ctx$cnames == "documentId")) stop("Column factor documentId is required") 
 
-documentIds <- ctx$cselect()
+schema <- find.schema.by.factor.name(ctx, names(ctx$cselect())[[1]])
 
-for (id in documentIds[[1]]) {
+table <- ctx$client$tableSchemaService$select(schema$id, Map(function(x) x$name, schema$columns), 0, schema$nRows)
+
+table <- as_tibble(table)
+
+hidden_colnames <- colnames(table)[str_starts(colnames(table), "\\.")]
+
+
+if (!((".forward_read_fastq_data" %in% hidden_colnames) &
+      (".reverse_read_fastq_data" %in% hidden_colnames))) {
   
-  res <- try(ctx$client$fileService$get(id),silent = TRUE)
-  if (class(res) == "try-error") stop("Supplied column values are not valid documentIds.")
-  
+  stop("Input is not samples containing paired-end fastq data.")
   
 }
 
-file_names <- sapply(documentIds[[1]],
-                     function(x) (ctx$client$fileService$get(x))$name) %>%
-  sort()
-
-if((length(file_names) %% 2) != 0) stop("Non-even number of files supplied. Are you sure you've supplied paired-end files?")
-
-
-for (first_in_pair_index in seq(1, length(file_names), by = 2)) {
+for (i in 1:nrow(table)) {
   
-  docIds = file_names[first_in_pair_index:(first_in_pair_index+1)]
+  sample_name <- select(table, ends_with(".sample"))[[1]][[i]]
   
-  dodId_r1 <- names(docIds)[[1]]
-  doc_r1 <- ctx$client$fileService$get(dodId_r1)
-  filename_r1 <- docIds[[1]]
-  writeBin(ctx$client$fileService$download(dodId_r1), filename_r1)
-  on.exit(unlink(filename_r1))
+  filename_r1 <- paste0(sample_name, "1.fastq.gz")
+  filename_r2 <- paste0(sample_name, "2.fastq.gz")
   
-  dodId_r2 <- names(docIds)[[2]]
-  doc_r2 <- ctx$client$fileService$get(dodId_r2)
-  filename_r2 <- docIds[[2]]
-  writeBin(ctx$client$fileService$download(dodId_r2), filename_r2)
-  on.exit(unlink(filename_r2))
-  
-  seqlibrary_name <- substr(filename_r1, 1,which.min(strsplit(filename_r1, "")[[1]] == strsplit(filename_r2, "")[[1]]))
+  writeBin(deserialize.from.string(table[".forward_read_fastq_data"][[1]][[i]]), filename_r1)
+  writeBin(deserialize.from.string(table[".reverse_read_fastq_data"][[1]][[i]]), filename_r2)
   
   cmd = '/tracer/tracer'
   args = paste('assemble',
@@ -47,11 +88,11 @@ for (first_in_pair_index in seq(1, length(file_names), by = 2)) {
                '--config_file /tercen_tracer.conf',
                '-s Hsap',
                filename_r1, filename_r2,
-               seqlibrary_name, "this_run",
+               paste0(sample_name, "_", i), "this_run",
                sep = ' ')
-  
-  system2(cmd, args)
 
+  system2(cmd, args)
+  
 }
 
 args <- paste('summarise',
@@ -77,5 +118,5 @@ collected_summary[,cols] <- lapply(collected_summary[,cols], as.numeric)
 
 (collected_summary %>%
     mutate(.ci = 0) %>%
-    ctx$addNamespace() %>%
-    ctx$save())
+  ctx$addNamespace() %>%
+  ctx$save())
