@@ -90,7 +90,7 @@ for (i in 1:nrow(table)) {
                filename_r1, filename_r2,
                paste0(sample_name, "_", i), "this_run",
                sep = ' ')
-
+  
   system2(cmd, args)
   
 }
@@ -118,5 +118,5 @@ collected_summary[,cols] <- lapply(collected_summary[,cols], as.numeric)
 
 (collected_summary %>%
     mutate(.ci = 0) %>%
-  ctx$addNamespace() %>%
-  ctx$save())
+    ctx$addNamespace() %>%
+    ctx$save())
