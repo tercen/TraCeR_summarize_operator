@@ -116,6 +116,30 @@ collected_summary <- read_tsv("this_run.tsv")
 cols <- sapply(collected_summary, is.logical)
 collected_summary[,cols] <- lapply(collected_summary[,cols], as.numeric)
 
+save_output <- as.character(ctx$op.value('save_output_to_folder'))
+
+if (save_output == "yes") {
+  
+  output_folder_prefix <- as.character(ctx$op.value('output_folder_prefix'))
+  
+  # create trim galore zipped output
+  system("tar czvf tracer_output.gzip this_run")
+  
+  # save zipped file to project folder
+  filename <- "tracer_output.gzip"
+  bytes = readBin(file(filename, 'rb'),
+                  raw(),
+                  n = file.info(filename)$size)
+  
+  fileDoc = FileDocument$new()
+  fileDoc$name = paste0(output_folder_prefix, "_", filename)
+  fileDoc$projectId = ctx$cschema$projectId
+  fileDoc$size = length(bytes)
+  
+  fileDoc = ctx$client$fileService$upload(fileDoc, bytes)
+  
+}
+
 
 (collected_summary %>%
     mutate(.ci = 0) %>%
