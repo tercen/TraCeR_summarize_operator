@@ -113,6 +113,12 @@ system(cmd)
 
 collected_summary <- read_tsv("this_run.tsv")
 
+recombinants <- read_tsv("this_run/filtered_TCRAB_summary/recombinants.txt")
+
+collected_summary <- left_join(collected_summary,
+                               recombinants,
+                               by = c(sample = "cell_name"))
+
 cols <- sapply(collected_summary, is.logical)
 collected_summary[,cols] <- lapply(collected_summary[,cols], as.numeric)
 

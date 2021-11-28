@@ -97,7 +97,7 @@ for (i in 1:nrow(table)) {
                filename_r1, filename_r2,
                paste0(sample_name, "_", i), "this_run",
                sep = ' ')
-
+  
   system2(cmd, args)
   
 }
@@ -119,11 +119,41 @@ system(cmd)
 
 collected_summary <- read_tsv("this_run.tsv")
 
+recombinants <- read_tsv("this_run/filtered_TCRAB_summary/recombinants.txt")
+
+collected_summary <- left_join(collected_summary,
+                               recombinants,
+                               by = c(sample = "cell_name"))
+
 cols <- sapply(collected_summary, is.logical)
 collected_summary[,cols] <- lapply(collected_summary[,cols], as.numeric)
+
+save_output <- as.character(ctx$op.value('save_output_to_folder'))
+
+if (save_output == "yes") {
+  
+  output_folder_prefix <- as.character(ctx$op.value('output_folder_prefix'))
+  
+  # create trim galore zipped output
+  system("zip -r tracer_output.zip this_run")
+  
+  # save zipped file to project folder
+  filename <- "tracer_output.zip"
+  bytes = readBin(file(filename, 'rb'),
+                  raw(),
+                  n = file.info(filename)$size)
+  
+  fileDoc = FileDocument$new()
+  fileDoc$name = paste0(output_folder_prefix, "_", filename)
+  fileDoc$projectId = ctx$cschema$projectId
+  fileDoc$size = length(bytes)
+  
+  fileDoc = ctx$client$fileService$upload(fileDoc, bytes)
+  
+}
 
 
 (collected_summary %>%
     mutate(.ci = 0) %>%
-  ctx$addNamespace() %>%
-  ctx$save())
+    ctx$addNamespace() %>%
+    ctx$save())
