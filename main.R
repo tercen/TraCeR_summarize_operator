@@ -59,6 +59,12 @@ ctx <- tercenCtx()
 
 schema <- find.schema.by.factor.name(ctx, names(ctx$cselect())[[1]])
 
+if (length(ctx$cselect()) == 2 ) {
+  sample_names_vector = ctx$cselect()[[2]]
+} else {
+  sample_names_vector = ctx$cselect()[[1]]
+}
+
 table <- ctx$client$tableSchemaService$select(schema$id, Map(function(x) x$name, schema$columns), 0, schema$nRows)
 
 table <- as_tibble(table)
@@ -75,7 +81,7 @@ if (!((".forward_read_fastq_data" %in% hidden_colnames) &
 
 for (i in 1:nrow(table)) {
   
-  sample_name <- select(table, ends_with(".sample"))[[1]][[i]]
+  sample_name <- sample_names_vector[[i]]
   
   filename_r1 <- paste0(sample_name, "1.fastq.gz")
   filename_r2 <- paste0(sample_name, "2.fastq.gz")
