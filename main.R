@@ -16,7 +16,7 @@ ctx <- tercenCtx()
 
 # Define input path
 # LATER THIS WILL COME FROM THE TERCEN TABLE!
-input_path <- "/var/lib/tercen/external/read"
+input_path <- "/var/lib/tercen/external/read/admin/tracer_summarise_dev"
 
 # Define output path
 # LATER THIS WILL COME FROM THE TERCEN TABLE!
