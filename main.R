@@ -22,7 +22,7 @@ print(input_path)
 
 # Define output path
 # LATER THIS WILL COME FROM THE TERCEN TABLE!
-output_path <- "/var/lib/tercen/external/read/admin"
+output_path <- "/var/lib/tercen/external/write"
 
 # run the TraCeR summarise command
 
