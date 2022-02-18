@@ -16,13 +16,13 @@ ctx <- tercenCtx()
 
 # Define input path
 # LATER THIS WILL COME FROM THE TERCEN TABLE!
-input_path <- "asdfasdf/var/lib/tercen/external/read/"
+input_path <- "/var/lib/tercen/share/read/"
 
 print(input_path)
 
 # Define output path
 # LATER THIS WILL COME FROM THE TERCEN TABLE!
-output_path <- "/var/lib/tercen/external/write"
+output_path <- "/var/lib/tercen/share/write"
 
 # run the TraCeR summarise command
 
