@@ -48,7 +48,7 @@ system(cmd)
 
 collected_summary <- read_tsv(paste0(output_path, "/summarise_output.tsv"))
 
-recombinants <- read_tsv(paste0(output_path, "/filtered_TCRAB_summary/recombinants.txt")
+recombinants <- read_tsv(paste0(output_path, "/filtered_TCRAB_summary/recombinants.txt"))
 
 collected_summary <- left_join(collected_summary,
                                recombinants,
