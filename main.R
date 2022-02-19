@@ -24,6 +24,9 @@ print(input_path)
 # LATER THIS WILL COME FROM THE TERCEN TABLE!
 output_path <- "/var/lib/tercen/share/write"
 
+# copy contents of input path into output path
+system(paste0("cp -r ", input_path, "/* ", output_path, "/"))
+
 # run the TraCeR summarise command
 
 cmd = '/tracer/tracer'
@@ -32,25 +35,20 @@ args <- paste('summarise',
               '--ncores', parallel::detectCores(),
               '--config_file /tercen_tracer.conf',
               '-s Hsap',
-              input_path,
+              output_path,
               sep = ' ')
 
 system2(cmd, args)
 
 # run the collect script
 
-cmd <- paste0("python /collect_TRA_TRB_in_fasta.py ", input_path, "/*/filtered_TCR_seqs/*.fa > ", output_path, "/summarise_output.tsv")
+cmd <- paste0("python /collect_TRA_TRB_in_fasta.py ", output_path, "/*/filtered_TCR_seqs/*.fa > ", output_path, "/summarise_output.tsv")
 
 system(cmd)
 
-# move the tracer_summarise output to the output folder
-cmd <- paste0("mv ", input_path, "/filtered_TCRAB_summary ", output_path, "/")
+collected_summary <- read_tsv(paste0(output_path, "/summarise_output.tsv"))
 
-system(cmd)
-
-collected_summary <- read_tsv(paste0(input_path, "/summarise_output.tsv"))
-
-recombinants <- read_tsv(paste0(input_path, "/filtered_TCRAB_summary/recombinants.txt")
+recombinants <- read_tsv(paste0(output_path, "/filtered_TCRAB_summary/recombinants.txt")
 
 collected_summary <- left_join(collected_summary,
                                recombinants,
