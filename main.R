@@ -7,25 +7,19 @@ library(stringr)
 ctx <- tercenCtx()
 
 
-
-#if (length(ctx$cselect()) == 2 ) {
-#  sample_names_vector = ctx$cselect()[[2]]
-#} else {
-#  sample_names_vector = ctx$cselect()[[1]]
-#}
-
-# Define input path
-# LATER THIS WILL COME FROM THE TERCEN TABLE!
-input_path <- "/var/lib/tercen/share/read"
-
-print(input_path)
-
 # Define output path
-# LATER THIS WILL COME FROM THE TERCEN TABLE!
-output_path <- "/var/lib/tercen/share/write"
+output_path <- "/var/lib/tercen/share/write/tracer_output"
 
-# copy contents of input path into output path
-system(paste0("cp -r ", input_path, "/* ", output_path, "/"))
+# Check if a "tracer_output" folder exists and is not empty
+if( dir.exists(output_path) == FALSE) {
+
+  stop("ERROR: tracer_output folder does not exist in project write folder.")
+
+}
+
+if (length(dir(output_path)) == 0) {
+  stop("ERROR: tracer_output folder is empty.")
+}
 
 # run the TraCeR summarise command
 
@@ -56,30 +50,6 @@ collected_summary <- left_join(collected_summary,
 
 cols <- sapply(collected_summary, is.logical)
 collected_summary[,cols] <- lapply(collected_summary[,cols], as.numeric)
-
-#save_output <- as.character(ctx$op.value('save_output_to_folder'))
-#
-#if (save_output == "yes") {
-#  
-#  output_folder_prefix <- as.character(ctx$op.value('output_folder_prefix'))
-#  
-#  # create trim galore zipped output
-#  system("zip -r tracer_output.zip this_run")
-#  
-#  # save zipped file to project folder
-#  filename <- "tracer_output.zip"
-#  bytes = readBin(file(filename, 'rb'),
-#                  raw(),
-#                  n = file.info(filename)$size)
-#  
-#  fileDoc = FileDocument$new()
-#  fileDoc$name = paste0(output_folder_prefix, "_", filename)
-#  fileDoc$projectId = ctx$cschema$projectId
-#  fileDoc$size = length(bytes)
-#  
-#  fileDoc = ctx$client$fileService$upload(fileDoc, bytes)
-#  
-#}
 
 
 (collected_summary %>%
